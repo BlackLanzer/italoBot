@@ -11,7 +11,22 @@ var getSubredditJson = function(subreddit, callback) {
 					};
 	request(reqOption, function(err, res, body) {
 		if (!err && res.statusCode == 200) {
-			console.log("json scaricato");
+			callback(body,callback);
+		}
+		else {
+			callback(err, callback);
+		}
+	});
+};
+
+// call callback with the page (or an error) after getting the top page.
+// time can be hour, day, week, month, all
+var getTopSubredditJson = function(subreddit, time, callback) {
+	var reqOption = {	uri : "http://reddit.com/r/"+subreddit+"/top.json?t="+time, 
+						json : true
+					};
+	request(reqOption, function(err, res, body) {
+		if (!err && res.statusCode == 200) {
 			callback(body,callback);
 		}
 		else {
@@ -30,21 +45,19 @@ var getImageUrls = function(jsonPage,callback) {
 		if (/(jpg|png)$/.test(children[i].data.url))
 			imageUrls.push(children[i].data.url);
 	}
-	console.log("immagine scelta")
 	callback(imageUrls, callback);
 
 	// return imageUrls;
 };
 
 // download image and call callback with the path after saving it
-var getImage = function(imageUrls, callback) {
-	var index = Math.floor(Math.random() * (imageUrls.length));
+// index of the image to download. If null is random
+var getImage = function(imageUrls, callback, index) {
+	if (index == undefined) {index = Math.floor(Math.random() * (imageUrls.length));}
 	var chosenUrl = imageUrls[index];
 	console.log("url: "+chosenUrl);
 	var fileName = /([^\/]*\.(jpg|png))$/.exec(chosenUrl)[1]; // return $filename in link/$filename
-	console.log("filename: "+fileName);
 	var imgPath = "tmp/" + fileName; 
-	// var imgPath = "tmp/image.jpg";
 
 	// try cath because nodejs is great, so there isn't a way to check if a file exists
 	try 
@@ -68,7 +81,6 @@ var getImage = function(imageUrls, callback) {
 				}
 			})
 			.on('response', function() {
-				console.log("Downloading " + imageUrls[index]);
 			})
 			.on('end', function() {
 				console.log("Download complete");
@@ -97,12 +109,37 @@ var sendImage = function(chat_id, imgPath, callback) {
 	});
 };
 
-var downloadAndSend = function(chat_id,subreddit) {
+var sendMessage = function(chat_id, message, callback) {
+	var options = {
+				url : "https://api.telegram.org/bot"+ TOKEN + "/sendMessage",
+				method : "POST",
+				json : true,
+				formData : { // the form uploaded to Telegram
+					chat_id : chat_id,
+					text : message
+				}
+		};
+		request.post(options, function(err, res, body) {
+			if (callback != undefined) callback();
+	});
+};
+
+var downloadAndSendImage = function(chat_id,subreddit) {
 	getSubredditJson(subreddit, function(jsonPage) {
 		getImageUrls(jsonPage, function(imageUrls) {
 			getImage(imageUrls,function(imgPath) {
 				sendImage(chat_id, imgPath);
 			});
+		})
+	});
+};
+
+var downloadAndSendTopImage = function(chat_id, subreddit, time) {
+	getTopSubredditJson(subreddit, time, function(jsonPage) {
+		getImageUrls(jsonPage, function(imageUrls) {
+			getImage(imageUrls,function(imgPath) {
+				sendImage(chat_id, imgPath);
+			}, 0);
 		})
 	});
 };
@@ -124,9 +161,13 @@ setInterval(function() {
 
 				if (text != undefined) // sometimes there's no text
 				{
-					if (text.indexOf("figa") > -1) {downloadAndSend(chatId, "realGirls");};
-					if (text.indexOf("tette") > -1) {downloadAndSend(chatId, "tits");};
-					if (text.indexOf("culo") > -1) {downloadAndSend(chatId, "ass");};
+					if (text.indexOf("figa") > -1) {
+						if (text.indexOf("figa del giorno") > -1) {downloadAndSendTopImage(chatId,"realGirls","day");}
+						else {downloadAndSendImage(chatId, "realGirls");}
+					}
+					if (text.indexOf("tette") > -1) {downloadAndSendImage(chatId, "tits");};
+					if (text.indexOf("culo") > -1) {downloadAndSendImage(chatId, "ass");};
+					if (text.indexOf("sponsor") > -1) {sendMessage(chatId, "Agua urinata:\nbivi na giossa, pissi na bossa;\nbivi na bossa, pissi na fossa;\nbevi na fossa, i ga provà ma i ga ancora da dare i risultati!");}
 				}
 			})
 		});	
