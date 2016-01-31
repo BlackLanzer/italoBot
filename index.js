@@ -122,10 +122,12 @@ setInterval(function() {
 				var chatId = value.message.chat.id;
 				var text = value.message.text;
 
-				if (text.indexOf("figa") > -1) {downloadAndSend(chatId, "realGirls");};
-				if (text.indexOf("tette") > -1) {downloadAndSend(chatId, "tits");};
-				if (text.indexOf("culo") > -1) {downloadAndSend(chatId, "ass");};
-
+				if (text != undefined) // sometimes there's no text
+				{
+					if (text.indexOf("figa") > -1) {downloadAndSend(chatId, "realGirls");};
+					if (text.indexOf("tette") > -1) {downloadAndSend(chatId, "tits");};
+					if (text.indexOf("culo") > -1) {downloadAndSend(chatId, "ass");};
+				}
 			})
 		});	
 }, 1500);
