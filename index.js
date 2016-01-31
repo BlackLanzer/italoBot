@@ -155,7 +155,8 @@ async.forever(function(next) {
 		}, 
 		function(err, res, body) {
 			var result = JSON.parse(body).result;
-			if (result.length == 0) {next();}
+			if (result.length == 0) {next(); return;}
+			console.log(result);
 			async.forEachOf(result, function (value,i,callback) {
 				offset = JSON.stringify(value.update_id)*1 + 1;
 				var chatId = value.message.chat.id;
@@ -163,13 +164,17 @@ async.forever(function(next) {
 
 				if (text != undefined) // sometimes there's no text
 				{
+					var sent = false;
 					if (text.indexOf("figa") > -1) {
+						sent = true;
 						if (text.indexOf("figa del giorno") > -1) {downloadAndSendTopImage(chatId,"realGirls","day", next);}
 						else {downloadAndSendImage(chatId, "realGirls", next);}
 					}
-					if (text.indexOf("tette") > -1) {downloadAndSendImage(chatId, "tits", next);};
-					if (text.indexOf("culo") > -1) {downloadAndSendImage(chatId, "ass", next);};
-					if (text.indexOf("sponsor") > -1) {sendMessage(chatId, "Agua urinata:\nbivi na giossa, pissi na bossa;\nbivi na bossa, pissi na fossa;\nbevi na fossa, i ga provà ma i ga ancora da dare i risultati!", next);}
+					if (text.indexOf("tette") > -1) {sent=true; downloadAndSendImage(chatId, "tits", next);};
+					if (text.indexOf("culo") > -1) {sent=true; downloadAndSendImage(chatId, "ass", next); sent=true;};
+					if (text.indexOf("sponsor") > -1) {sent=true; sendMessage(chatId, "Agua urinata:\nbivi na giossa, pissi na bossa;\nbivi na bossa, pissi na fossa;\nbevi na fossa, i ga provà ma i ga ancora da dare i risultati!", next); sent=true;};
+
+					if (!sent) {next();};
 				}
 			})
 		});	
