@@ -3,9 +3,10 @@ Italo telegram bot
 
 ###Usage
 
-1. 'npm install'
-2. 'node index.js <botToken>'
-tmp folder MUST exist
+1. `npm install`
+2. `node index.js <botToken>`
+
+A folder called `tmp` MUST exist in the same folder of index.js
 
 ###Commands
 * tette: download and send a picture from /r/tits
