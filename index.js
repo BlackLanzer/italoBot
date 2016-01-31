@@ -124,28 +124,29 @@ var sendMessage = function(chat_id, message, callback) {
 	});
 };
 
-var downloadAndSendImage = function(chat_id,subreddit) {
+var downloadAndSendImage = function(chat_id,subreddit, callback) {
 	getSubredditJson(subreddit, function(jsonPage) {
 		getImageUrls(jsonPage, function(imageUrls) {
 			getImage(imageUrls,function(imgPath) {
-				sendImage(chat_id, imgPath);
+				sendImage(chat_id, imgPath, callback);
 			});
 		})
 	});
 };
 
-var downloadAndSendTopImage = function(chat_id, subreddit, time) {
+// time can be hour, day, week, month, all
+var downloadAndSendTopImage = function(chat_id, subreddit, time, callback) {
 	getTopSubredditJson(subreddit, time, function(jsonPage) {
 		getImageUrls(jsonPage, function(imageUrls) {
 			getImage(imageUrls,function(imgPath) {
-				sendImage(chat_id, imgPath);
+				sendImage(chat_id, imgPath, callback);
 			}, 0);
 		})
 	});
 };
 
 var offset = 0;
-setInterval(function() {
+async.forever(function(next) {
 	request.post("https://api.telegram.org/bot" + TOKEN + "/getUpdates",
 		{form:
 			{
@@ -154,6 +155,7 @@ setInterval(function() {
 		}, 
 		function(err, res, body) {
 			var result = JSON.parse(body).result;
+			if (result.length == 0) {next();}
 			async.forEachOf(result, function (value,i,callback) {
 				offset = JSON.stringify(value.update_id)*1 + 1;
 				var chatId = value.message.chat.id;
@@ -162,13 +164,13 @@ setInterval(function() {
 				if (text != undefined) // sometimes there's no text
 				{
 					if (text.indexOf("figa") > -1) {
-						if (text.indexOf("figa del giorno") > -1) {downloadAndSendTopImage(chatId,"realGirls","day");}
-						else {downloadAndSendImage(chatId, "realGirls");}
+						if (text.indexOf("figa del giorno") > -1) {downloadAndSendTopImage(chatId,"realGirls","day", next);}
+						else {downloadAndSendImage(chatId, "realGirls", next);}
 					}
-					if (text.indexOf("tette") > -1) {downloadAndSendImage(chatId, "tits");};
-					if (text.indexOf("culo") > -1) {downloadAndSendImage(chatId, "ass");};
-					if (text.indexOf("sponsor") > -1) {sendMessage(chatId, "Agua urinata:\nbivi na giossa, pissi na bossa;\nbivi na bossa, pissi na fossa;\nbevi na fossa, i ga provà ma i ga ancora da dare i risultati!");}
+					if (text.indexOf("tette") > -1) {downloadAndSendImage(chatId, "tits", next);};
+					if (text.indexOf("culo") > -1) {downloadAndSendImage(chatId, "ass", next);};
+					if (text.indexOf("sponsor") > -1) {sendMessage(chatId, "Agua urinata:\nbivi na giossa, pissi na bossa;\nbivi na bossa, pissi na fossa;\nbevi na fossa, i ga provà ma i ga ancora da dare i risultati!", next);}
 				}
 			})
 		});	
-}, 1500);
+});
