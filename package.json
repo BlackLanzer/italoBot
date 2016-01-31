@@ -1,0 +1,16 @@
+{
+  "name": "italobot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "BlackLanzer",
+  "license": "ISC",
+  "description": "A telegram bot to get nsfw pictures from reddit",
+  "dependencies": {
+    "async": "^1.5.2",
+    "request": "^2.69.0"
+  },
+  "devDependencies": {}
+}
