@@ -156,26 +156,43 @@ async.forever(function(next) {
 		function(err, res, body) {
 			var result = JSON.parse(body).result;
 			if (result.length == 0) {next(); return;}
-			console.log(result);
 			async.forEachOf(result, function (value,i,callback) {
-				offset = JSON.stringify(value.update_id)*1 + 1;
+				offset = value.update_id*1 + 1;
 				var chatId = value.message.chat.id;
 				var text = value.message.text;
 
+				var nextRequest = function() {
+					// the ugliest way ever to let multiple options happen.
+					// if you take away the try catch it will give an error, because callback
+					// will be called more than once.
+					// try
+					// {
+						// callback();
+					// }
+					// catch(e)
+					// {
+						// console.log(e);
+					// }
+					/* MAYBE IT'S NOT NEEDED */
+
+					callback();
+				};
 				if (text != undefined) // sometimes there's no text
 				{
-					var sent = false;
+					text = text.toLowerCase();
 					if (text.indexOf("figa") > -1) {
-						sent = true;
-						if (text.indexOf("figa del giorno") > -1) {downloadAndSendTopImage(chatId,"realGirls","day", next);}
-						else {downloadAndSendImage(chatId, "realGirls", next);}
+						if (text.indexOf("figa del giorno") > -1) {downloadAndSendTopImage(chatId,"realGirls","day");}
+						else {downloadAndSendImage(chatId, "realGirls");}
 					}
-					if (text.indexOf("tette") > -1) {sent=true; downloadAndSendImage(chatId, "tits", next);};
-					if (text.indexOf("culo") > -1) {sent=true; downloadAndSendImage(chatId, "ass", next); sent=true;};
-					if (text.indexOf("sponsor") > -1) {sent=true; sendMessage(chatId, "Agua urinata:\nbivi na giossa, pissi na bossa;\nbivi na bossa, pissi na fossa;\nbevi na fossa, i ga provà ma i ga ancora da dare i risultati!", next); sent=true;};
-
-					if (!sent) {next();};
+					if (text.indexOf("tette") > -1) {downloadAndSendImage(chatId, "tits");};
+					if (text.indexOf("culo") > -1) {downloadAndSendImage(chatId, "ass");};
+					if (text.indexOf("sponsor") > -1) {sendMessage(chatId, "Agua Urinata:\nbivi na giossa, pissi na bossa;\nbivi na bossa, pissi na fossa;\nbevi na fossa, i ga provà ma i ga ancora da dare i risultati!");};
 				}
-			})
+
+				nextRequest();
+			},
+			function() {
+				next();
+			});
 		});	
 });
