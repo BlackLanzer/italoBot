@@ -154,7 +154,13 @@ async.forever(function(next) {
 			}
 		}, 
 		function(err, res, body) {
+
+			if (err || res.statusCode != 200 || !body)
+				return next();
+
+
 			var result = JSON.parse(body).result;
+		
 			if (result.length == 0) {next(); return;}
 			async.forEachOf(result, function (value,i,callback) {
 				offset = value.update_id*1 + 1;
